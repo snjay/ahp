@@ -8,7 +8,7 @@ import math
 # np.set_printoptions(precision=5)
 # np.set_printoptions(formatter={'float': '{: 0.2f}'.format})
 
-# Define names
+# Define alternatives, criterias and goal
 alts = ['Pizza Hut', "Domino's"]
 crits = ['Distance', 'Price', 'Cuisine']
 goal = 'Picking where to eat'
@@ -22,77 +22,101 @@ gl = goal.lower()
 goal_mat = np.ones((nC, nC))
 
 
-def p_vec(M):
-	""""
-	Priority vectors are obtained:
-	* In exact form by raising the matrix to large powers and summing 
-	  each row and dividing each by the total sum of all the rows, OR
-	* Approximately by adding each row of the matrix and dividing by 
-	  their total
-	"""
-	w, v = LA.eig(M)
-	max_w = np.argmax(w)
-	# How `max_w` works: Take all indices of M along the first axis, 
-	#  but only index max_w along the second
-	p_eig = v[:,max_w]
-	# Return normalised principal eigenvector
-	return np.real(p_eig/np.sum(p_eig))
+class AHP:
+	def __init__(self, alternatives=[], criterias=[], goal=''):
+		self.alternatives = alternatives
+		self.criterias = criterias
+		self.goal = goal
+		self.crit_mat = self._init_crit_matrix()
+		self.goal_mat = self._init_goal_matrix()
 
-def title(title, u="-"):
-	print(f" {title} ".center(60, u))
+	def _init_crit_matrix(self):
+		nA = len(self.alternatives)
+		crit_mat = {}
+		for c in crits:	
+			crit_mat[c] = np.ones((nA, nA))
+		return crit_mat
 
-def frac_input(prompt):
-	frac = float(0.0)
-	valid = False
-	while not valid:
-		try:
-			frac = float(Fraction(input(prompt)))
-			valid = True
-		except ValueError:
-			print("Enter a valid fraction.")
-	return frac
+	def _init_goal_matrix(self):
+		nC = len(self.criterias)
+		return np.ones((nC, nC))
 
+	def _priority_vec(self, M):
+		""""
+		Priority vectors are obtained:
+		* In exact form by raising the matrix to large powers and summing 
+		  each row and dividing each by the total sum of all the rows, OR
+		* Approximately by adding each row of the matrix and dividing by 
+		  their total
+		"""
+		w, v = LA.eig(M)
+		max_w = np.argmax(w)
+		# How `max_w` works: Take all indices of M along the first axis, 
+		#  but only index max_w along the second
+		p_eig = v[:,max_w]
+		# Return normalised principal eigenvector
+		return np.real(p_eig/np.sum(p_eig))
 
-title(goal, u="=")
-print()
+	def _title(self, title, u="-"):
+		print(f" {title} ".center(60, u))
 
-# Judgement matrix
-# ----------------
-# (i, j) represents how many more times i is important than j
-# note: if (i, j) = m; then (j, i) = 1/m
+	def _frac_input(self, prompt):
+		frac = float(0.0)
+		valid = False
+		while not valid:
+			try:
+				frac = float(Fraction(input(prompt)))
+				valid = True
+			except ValueError:
+				print("Enter a valid fraction.")
+		return frac
 
-# Prioritise Alts w.r.t Criteria
-for h, c in enumerate(crits):
-	cu = c.upper()
-	remaining = sum([(nC - h) * nA, (nA * nC) // 2])
-	title(f"{cu} ({remaining} qs left)")
-	mat = crit_mat[c]
-	for i, a1 in enumerate(alts):
-		for j, a2 in enumerate(alts):
-			if a1 == a2:
-				break
-			prompt = f"{a2} has better {cu} than {a1} by how times? "
-			a_val = frac_input(prompt)
-			mat[i, j] = 1 / a_val
-			mat[j, i] = a_val / 1
-	print()
+	def best_decision(self):
+		crits = self.criterias
+		alts = self.alternatives
+		goal = self.goal
+		crit_mat = self.crit_mat
+		goal_mat = self.goal_mat
 
-# Prioritise Criteria w.r.t Goal
-title(f"Prioritise criteria ({(nA * nC) // 2} qs left)")
-for i, c1 in enumerate(crits):
-	for j, c2 in enumerate(crits):
-		c1u, c2u = c1.upper(), c2.upper()
-		if c1 == c2:
-			break
-		prompt = f"How many times is {c2u} more important to {gl} than {c1u}? "
-		c_val = frac_input(prompt)
-		goal_mat[i, j] = 1 / c_val
-		goal_mat[j, i] = c_val / 1
+		self._title(goal, u="=")
+		gl = goal.lower()
+		print()
+		# Judgement matrix
+		# ----------------
+		# (i, j) represents how many more times i is important than j
+		# note: if (i, j) = m; then (j, i) = 1/m
 
-all_crits_p = np.array([p_vec(p) for p in crit_mat.values()])
-goal_p = p_vec(goal_mat)
-res = np.sum(goal_p * all_crits_p.T, axis=1)
+		# Prioritise Alts w.r.t Criteria
+		for h, c in enumerate(crits):
+			cu = c.upper()
+			remaining = sum([(nC - h) * nA, (nA * nC) // 2])
+			self._title(f"{cu} ({remaining} qs left)")
+			mat = crit_mat[c]
+			for i, a1 in enumerate(alts):
+				for j, a2 in enumerate(alts):
+					if a1 == a2:
+						break
+					prompt = f"{a2} has better {cu} than {a1} by how times? "
+					a_val = self._frac_input(prompt)
+					mat[i, j] = 1 / a_val
+					mat[j, i] = a_val / 1
+			print()
 
-print()
-title("Results", u="#")
-print(alts[np.argmax(res)])
+		# Prioritise Criteria w.r.t Goal
+		self._title(f"Prioritise criteria ({(nA * nC) // 2} qs left)")
+		for i, c1 in enumerate(crits):
+			for j, c2 in enumerate(crits):
+				c1u, c2u = c1.upper(), c2.upper()
+				if c1 == c2:
+					break
+				prompt = f"How many times is {c2u} more important to {gl} than {c1u}? "
+				c_val = self._frac_input(prompt)
+				goal_mat[i, j] = 1 / c_val
+				goal_mat[j, i] = c_val / 1
+
+		all_crits_p = np.array([self._priority_vec(p) for p in crit_mat.values()])
+		goal_p = self._priority_vec(goal_mat)
+		res = np.sum(goal_p * all_crits_p.T, axis=1)
+		print()
+		self._title("Results", u="#")
+		return alts[np.argmax(res)]
