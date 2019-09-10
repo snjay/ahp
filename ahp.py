@@ -9,7 +9,7 @@ import math
 # np.set_printoptions(formatter={'float': '{: 0.2f}'.format})
 
 # Define names
-alts = ['Guzman', 'Pizza Hut', "Domino's"]
+alts = ['Pizza Hut', "Domino's"]
 crits = ['Distance', 'Price', 'Cuisine']
 goal = 'Picking where to eat'
 
@@ -84,7 +84,7 @@ for i, c1 in enumerate(crits):
 		c1u, c2u = c1.upper(), c2.upper()
 		if c1 == c2:
 			break
-		prompt = f"How many times is {c2u} better at {gl} than {c1u}? "
+		prompt = f"How many times is {c2u} more important to {gl} than {c1u}? "
 		c_val = frac_input(prompt)
 		goal_mat[i, j] = 1 / c_val
 		goal_mat[j, i] = c_val / 1
