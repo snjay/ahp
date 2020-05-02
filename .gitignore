@@ -5,4 +5,7 @@
 .DS_Store
 
 # py_cache
-.__pycache__/
+__pycache__/
+
+# python
+ahp.egg-info/

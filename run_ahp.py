@@ -1,4 +1,4 @@
-import ahp
+from ahp import AHP
 
 if __name__ == "__main__":
     ASK_QUESTIONS = False
