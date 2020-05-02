@@ -1,8 +1,6 @@
 from fractions import Fraction
 from numpy import linalg as LA
 import numpy as np
-import scipy
-import math
 
 # Set printing options precision
 # np.set_printoptions(precision=5)
@@ -23,7 +21,11 @@ goal_mat = np.ones((nC, nC))
 
 
 class AHP:
-    def __init__(self, alternatives=[], criterias=[], goal=''):
+    def __init__(self, alternatives=None, criterias=None, goal=''):
+        if criterias is None:
+            criterias = []
+        if alternatives is None:
+            alternatives = []
         self.alternatives = alternatives
         self.criterias = criterias
         self.goal = goal
@@ -60,11 +62,12 @@ class AHP:
     def _title(self, title, u="-"):
         print(f" {title} ".center(60, u))
 
-    def _frac_input(self, prompt):
+    def _frac_input(self, prompt, hint=""):
         frac = float(0.0)
         valid = False
         while not valid:
             try:
+                print(hint) if hint else None
                 frac = float(Fraction(input(prompt)))
                 valid = True
             except ValueError:
@@ -96,8 +99,10 @@ class AHP:
                 for j, a2 in enumerate(alts):
                     if a1 == a2:
                         break
-                    prompt = f"{a2} has better {cu} than {a1} by how times? "
-                    a_val = self._frac_input(prompt)
+                    # prompt = f"{a2} has better {cu} than {a1} by how times? "
+                    prompt = f"When it comes to {cu}, \n" + f"{a2} is ____x better than {a1}?\n"
+                    hint = f"Type in a number between 1 to 10 or press s to swap"
+                    a_val = self._frac_input(prompt=prompt, hint=hint)
                     mat[i, j] = 1 / a_val
                     mat[j, i] = a_val / 1
             print()
