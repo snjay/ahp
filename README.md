@@ -10,12 +10,6 @@ AHP defines a framework to evaluate decisions with 3 required things:
 2. **Criteria** (e.g. Distance, cuisine, price etc.)
 3. **Alternatives** to pick from (e.g. Pizza Hut, Domino's, Taco Bell).
 
-The first set of questions compare alternatives against the criteria. For example, 'How many more times is Pizza Hut better at price than Domino's?'. An answer of 4 means Pizza Hut is 4 times better at price than Domino's, whereas an answer of 1/4 means Pizza Hut is 1/4 better at price than Domino's (i.e. Domino's is 4 times better).
-
-The second set of questions compare criteria against each other to define the weights of  the judgement matrix. For example, a typical question at this stage would be along the lines of, 'By how many more times is *price* more important than *distance*?'. An answer of 6 means *price* is 6 times more important than *distance*. An answer of 1/8 means *distance* is actually 8 times more important than *price* (reciprocal) - as in the first set of questions.
-
-Finally, the principal eigenvector is computed to modify the weightingo of the alternatives and is used to find the index of the list of alternatives which has the highest weight to pick as a final result.
-
 ## Example run-through
 
 Define your goal, criteria and alternatives in `ahp.py` file before running.
@@ -43,3 +37,22 @@ How many times is PRICE better at picking where to eat than CUISINE? 5
 
 Best decision: Dominos
 ```
+
+## Questions
+
+The first set of questions compare alternatives against the criteria. For example, 'How many more times is Pizza Hut better at price than Domino's?'. An answer of 4 means Pizza Hut is 4 times better at price than Domino's, whereas an answer of 1/4 means Pizza Hut is 1/4 better at price than Domino's (i.e. Domino's is 4 times better).
+
+The second set of questions compare criteria against each other to define the weights of  the judgement matrix. For example, a typical question at this stage would be along the lines of, 'By how many more times is *price* more important than *distance*?'. An answer of 6 means *price* is 6 times more important than *distance*. An answer of 1/8 means *distance* is actually 8 times more important than *price* (reciprocal) - as in the first set of questions.
+
+Finally, the principal eigenvector is computed to modify the weightingo of the alternatives and is used to find the index of the list of alternatives which has the highest weight to pick as a final result.
+
+---
+
+### Todo
+
+- Don't ask for input, open up an method in the library to allow manual setting of choices
+  - It might not be the case that everyone will want to use my input method to do the comparisons
+- Heavy dependecy on numpy to compute the eigenvectors, are there any lightweight alternatives?
+- Is it possible to separate the modules out? <-- in progress!
+- Division by 0 error
+- Add pytests
