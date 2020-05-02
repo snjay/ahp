@@ -3,3 +3,9 @@
 
 # mac os
 .DS_Store
+
+# py_cache
+__pycache__/
+
+# python
+ahp.egg-info/
