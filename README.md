@@ -43,3 +43,12 @@ How many times is PRICE better at picking where to eat than CUISINE? 5
 
 Best decision: Dominos
 ```
+
+---
+
+### Todo
+
+- Don't ask for input, open up an method in the library to allow manual setting of choices
+  - It might not be the case that everyone will want to use my input method to do the comparisons
+- Heavy dependecy on numpy to compute the eigenvectors, are there any lightweight alternatives?
+- Is it possible to separate the modules out? <-- in progress!

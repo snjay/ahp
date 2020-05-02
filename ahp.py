@@ -6,20 +6,6 @@ import numpy as np
 # np.set_printoptions(precision=5)
 # np.set_printoptions(formatter={'float': '{: 0.2f}'.format})
 
-# Define alternatives, criterias and goal
-alts = ['Pizza Hut', "Domino's"]
-crits = ['Distance', 'Price', 'Cuisine']
-goal = 'Picking where to eat'
-
-# Init setup
-nA, nC = len(alts), len(crits)
-crit_mat = {}
-for c in crits:
-    crit_mat[c] = np.ones((nA, nA))
-gl = goal.lower()
-goal_mat = np.ones((nC, nC))
-
-
 class AHP:
     def __init__(self, alternatives=None, criterias=None, goal=''):
         if criterias is None:
@@ -29,10 +15,9 @@ class AHP:
         self.alternatives = alternatives
         self.criterias = criterias
         self.goal = goal
-        self.crit_mat = self._init_crit_matrix()
-        self.goal_mat = self._init_goal_matrix()
 
     def _init_crit_matrix(self):
+        crits = self.criterias
         nA = len(self.alternatives)
         crit_mat = {}
         for c in crits:
@@ -74,12 +59,14 @@ class AHP:
                 print("Enter a valid fraction.")
         return frac
 
-    def best_decision(self):
+    def decide(self):
         crits = self.criterias
         alts = self.alternatives
         goal = self.goal
-        crit_mat = self.crit_mat
-        goal_mat = self.goal_mat
+        crit_mat = self._init_crit_matrix()
+        goal_mat = self._init_goal_matrix()
+        nA = len(self.alternatives)
+        nC = len(self.criterias)
 
         self._title(goal, u="=")
         gl = goal.lower()
@@ -102,7 +89,7 @@ class AHP:
                     # prompt = f"{a2} has better {cu} than {a1} by how times? "
                     prompt = f"When it comes to {cu}, \n" + f"{a2} is ____x better than {a1}?\n"
                     hint = f"Type in a number between 1 to 10 or press s to swap"
-                    a_val = self._frac_input(prompt=prompt, hint=hint)
+                    a_val = self._frac_input(prompt, hint)
                     mat[i, j] = 1 / a_val
                     mat[j, i] = a_val / 1
             print()
