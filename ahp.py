@@ -147,6 +147,5 @@ class AHP:
         self._title("Results", u="#")
         return np.argmax(res)
 
-
 class PrioritizationError(Exception):
     pass
