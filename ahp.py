@@ -1,5 +1,5 @@
-from fractions import Fraction
 from numpy import linalg as LA
+from fractions import Fraction
 import numpy as np
 
 # Set printing options precision
@@ -17,16 +17,15 @@ class AHP:
         self.goal = goal
 
     def _init_crit_matrix(self):
-        crits = self.criterias
         nA = len(self.alternatives)
         crit_mat = {}
-        for c in crits:
+        for c in range(len(self.criterias)):
             crit_mat[c] = np.ones((nA, nA))
-        return crit_mat
+        self.crit_mat = crit_mat
 
     def _init_goal_matrix(self):
         nC = len(self.criterias)
-        return np.ones((nC, nC))
+        self.goal_mat = np.ones((nC, nC))
 
     def _priority_vec(self, M):
         """"
@@ -58,13 +57,40 @@ class AHP:
             except ValueError:
                 print("Enter a valid fraction.")
         return frac
+    
+    def compare_alternatives_wrt_criteria(self, alternatives, criteria, multiple):
+        """
+        Prioritise alternatives w.r.t criteria
+        --------------------------------------
+        When it comes to criteria, how many more 
+        times is alternative1 preferred to alternative2?
+        """
+        i, j = alternatives
+        if not hasattr(self, 'crit_mat'):
+            self._init_crit_matrix()
+        mat = self.crit_mat[criteria]
+        mat[i, j] = multiple / 1
+        mat[j, i] = 1 / multiple
 
-    def decide(self):
+    def compare_criterias_wrt_goal(self, criterias, multiple):
+        """
+        Prioritise criteria w.r.t goal
+        ------------------------------
+        How many more times is criteria1 more important
+        to achieve the goal than criteria2?
+        """
+        i, j = criterias
+        if not hasattr(self, 'goal_mat'):
+            self._init_goal_matrix()
+        goal_mat = self.goal_mat
+        goal_mat[i, j] = multiple / 1
+        goal_mat[j, i] = 1 / multiple
+
+    def prioritise(self):
+        # 1)
+        goal = self.goal
         crits = self.criterias
         alts = self.alternatives
-        goal = self.goal
-        crit_mat = self._init_crit_matrix()
-        goal_mat = self._init_goal_matrix()
         nA = len(self.alternatives)
         nC = len(self.criterias)
 
@@ -76,39 +102,51 @@ class AHP:
         # (i, j) represents how many more times i is important than j
         # note: if (i, j) = m; then (j, i) = 1/m
 
-        # Prioritise Alts w.r.t Criteria
+        # a) Prioritise alternatives w.r.t criteria
         for h, c in enumerate(crits):
             cu = c.upper()
-            remaining = sum([(nC - h) * nA, (nA * nC) // 2])
+            remaining = ((nC - h) * nA) + ((nA * nC) // 2)
             self._title(f"{cu} ({remaining} qs left)")
-            mat = crit_mat[c]
+            # mat = crit_mat[c]
             for i, a1 in enumerate(alts):
                 for j, a2 in enumerate(alts):
                     if a1 == a2:
                         break
-                    # prompt = f"{a2} has better {cu} than {a1} by how times? "
                     prompt = f"When it comes to {cu}, \n" + f"{a2} is ____x better than {a1}?\n"
-                    hint = f"Type in a number between 1 to 10 or press s to swap"
-                    a_val = self._frac_input(prompt, hint)
-                    mat[i, j] = 1 / a_val
-                    mat[j, i] = a_val / 1
+                    hint = f"Type in a number between 1 to 10 or press s to swap.\n"
+                    m = self._frac_input(prompt, hint)
+                    self.compare_alternatives_wrt_criteria((i, j), c, m)
             print()
 
-        # Prioritise Criteria w.r.t Goal
+        # b) Prioritise criteria w.r.t goal
         self._title(f"Prioritise criteria ({(nA * nC) // 2} qs left)")
         for i, c1 in enumerate(crits):
             for j, c2 in enumerate(crits):
                 c1u, c2u = c1.upper(), c2.upper()
-                if c1 == c2:
+                if c1u == c2u:
                     break
                 prompt = f"How many times is {c2u} more important to {gl} than {c1u}? "
-                c_val = self._frac_input(prompt)
-                goal_mat[i, j] = 1 / c_val
-                goal_mat[j, i] = c_val / 1
+                m = self._frac_input(prompt)
+                self.compare_criterias_wrt_goal((i, j), m)
 
+    def decide(self):
+        # 2) Decide
+        if not hasattr(self, 'crit_mat'):
+            raise PrioritizationError("Please call prioritize() to prioritise your alternatives with respect to the criteria")
+        if not hasattr(self, 'goal_mat'):
+            raise PrioritizationError("Please call prioritize() to prioritise your criterias with respect to the goal")
+        
+        crit_mat = self.crit_mat
+        goal_mat = self.goal_mat
+        
         all_crits_p = np.array([self._priority_vec(p) for p in crit_mat.values()])
         goal_p = self._priority_vec(goal_mat)
         res = np.sum(goal_p * all_crits_p.T, axis=1)
+        
         print()
         self._title("Results", u="#")
-        return alts[np.argmax(res)]
+        return np.argmax(res)
+
+
+class PrioritizationError(Exception):
+    pass

@@ -54,3 +54,5 @@ Finally, the principal eigenvector is computed to modify the weightingo of the a
   - It might not be the case that everyone will want to use my input method to do the comparisons
 - Heavy dependecy on numpy to compute the eigenvectors, are there any lightweight alternatives?
 - Is it possible to separate the modules out? <-- in progress!
+- Division by 0 error
+- Add pytests
